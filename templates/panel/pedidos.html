@@ -1,0 +1,39 @@
+{% extends 'panel/base_panel.html' %}
+{% load tienda_extras %}
+{% block title %}Pedidos{% endblock %}
+{% block encabezado %}Pedidos{% endblock %}
+
+{% block content %}
+<div class="tarjeta">
+  <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+    <div class="chips-estado">
+      <a href="?" class="{% if not estado %}activo{% endif %}">Todos</a>
+      {% for v, l, c in estados %}<a href="?estado={{ v }}" class="{% if estado == v %}activo{% endif %}">{{ l }} <span class="opacity-50">({{ c }})</span></a>{% endfor %}
+    </div>
+    <form method="get" class="d-flex gap-2">
+      {% if estado %}<input type="hidden" name="estado" value="{{ estado }}">{% endif %}
+      <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="N° pedido, cliente o email">
+      <button class="btn btn-negro btn-sm"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-panel">
+      <thead><tr><th>Pedido</th><th>Cliente</th><th>Fecha</th><th>Pago</th><th>Estado</th><th class="text-end">Total</th><th></th></tr></thead>
+      <tbody>
+      {% for p in pagina %}
+        <tr>
+          <td class="fw-semibold">{{ p.codigo }}</td>
+          <td>{{ p.nombre }} {{ p.apellido }}<div class="small text-muted">{{ p.email }}</div></td>
+          <td class="small">{{ p.fecha|date:"d/m/Y H:i" }}</td>
+          <td class="small">{{ p.pago.get_metodo_display }}<div class="text-muted">{{ p.pago.get_estado_display }}</div></td>
+          <td><span class="badge-estado text-bg-{{ p.color_estado }}">{{ p.get_estado_display }}</span></td>
+          <td class="text-end fw-semibold">{{ p.total|pesos }}</td>
+          <td class="text-end"><a href="{% url 'panel:pedido_detalle' p.pk %}" class="btn btn-light btn-sm">Gestionar <i class="bi bi-chevron-right"></i></a></td>
+        </tr>
+      {% empty %}<tr><td colspan="7" class="text-center text-muted py-4">No hay pedidos.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'panel/paginacion.html' %}
+</div>
+{% endblock %}

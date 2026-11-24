@@ -1,0 +1,48 @@
+{% load tienda_extras %}
+{% with fam=p.familia %}
+<article class="card-producto" {% if not sin_reveal %}data-reveal{% endif %}>
+  <a href="{{ p.get_absolute_url }}" class="card-producto__media js-card-link" aria-label="Ver {{ p.marca }} {{ p.nombre }}">
+    <span class="badge-off js-card-off{% if not p.descuento_pct %} d-none{% endif %}">{{ p.descuento_pct }}%</span>
+    {% if not p.disponible and fam|length == 1 %}<span class="badge-agotado">Agotado</span>{% endif %}
+    {% if p.es_nuevo %}<span class="badge-new">NUEVO</span>{% endif %}
+    {% include 'tienda/partials/imagen.html' with producto=p %}
+  </a>
+  <div class="card-producto__body">
+    <p class="marca">{{ p.marca }}</p>
+    <h3 class="nombre"><a href="{{ p.get_absolute_url }}" class="js-card-link">{{ p.nombre }}</a></h3>
+    <p class="tipo">{{ p.get_tipo_display }}</p>
+    {% if fam|length > 1 %}
+      {# Cada tamaño guarda su precio: al tocarlo se actualiza la tarjeta #}
+      <div class="d-flex flex-wrap gap-1" role="group" aria-label="Elegí el tamaño">
+        {% for v in fam %}
+          <button type="button" class="chip-ml chip-ml--card js-card-ml{% if v.pk == p.pk %} activo{% endif %}{% if not v.disponible %} agotado{% endif %}"
+                  aria-pressed="{% if v.pk == p.pk %}true{% else %}false{% endif %}"
+                  data-precio="{{ v.precio_final|pesos }}"
+                  data-antes="{% if v.descuento_pct %}{{ v.precio|pesos }}{% endif %}"
+                  data-off="{{ v.descuento_pct }}"
+                  data-cuota="{{ v.precio_final|cuota:6 }}"
+                  data-sinimp="{{ v.precio_final|sin_impuestos }}"
+                  data-url="{{ v.get_absolute_url }}"
+                  data-agregar="{% url 'carrito:agregar' v.pk %}"
+                  data-disponible="{{ v.disponible|yesno:'1,0' }}">{{ v.volumen_ml }} ML</button>
+        {% endfor %}
+      </div>
+    {% else %}
+      <span class="chip-ml">{{ p.volumen_ml }} ML</span>
+    {% endif %}
+    <div class="precio">
+      <span class="precio-final js-card-precio">{{ p.precio_final|pesos }}</span>
+      <del class="js-card-antes{% if not p.descuento_pct %} d-none{% endif %}">{% if p.descuento_pct %}{{ p.precio|pesos }}{% endif %}</del>
+    </div>
+    <span class="cuotas">6 cuotas de <span class="js-card-cuota">{{ p.precio_final|cuota:6 }}</span></span>
+    <p class="sin-impuestos">Precio sin impuestos nacionales: <span class="js-card-sinimp">{{ p.precio_final|sin_impuestos }}</span></p>
+    <form method="post" action="{% url 'carrito:agregar' p.pk %}" class="js-add-cart js-card-form{% if not p.disponible %} d-none{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="cantidad" value="1">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn-agregar"><span>Agregar</span> <i class="bi bi-bag"></i></button>
+    </form>
+    <button class="btn-agregar js-card-sinstock{% if p.disponible %} d-none{% endif %}" disabled>Sin stock</button>
+  </div>
+</article>
+{% endwith %}

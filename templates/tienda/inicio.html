@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static tienda_extras %}
+
+{% block content %}
+{# ---------- HERO ---------- #}
+<section class="hero">
+  <div id="heroCarrusel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="6500">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#heroCarrusel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#heroCarrusel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#heroCarrusel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <div class="hero__slide">
+          <div class="hero__fondo hero__fondo--foto" style="background-image: url('{% static 'img/hero/hero-tropical.jpg' %}')"></div>
+          <div class="hero__velo"></div>
+          <img src="{% static 'img/hero/le-beau.png' %}" alt="Jean Paul Gaultier Le Beau" class="hero__frasco hero__frasco--foto">
+          <div class="container-xl">
+            <div class="hero__contenido">
+              <p class="subtitulo text-white-50 mb-0">Nueva temporada</p>
+              <h1 class="hero__titulo">El arte de<br>la fragancia</h1>
+              <p class="hero__texto mb-4">Perfumes originales de las marcas que amás.</p>
+              <a href="{% url 'tienda:catalogo' %}" class="btn btn-acento">Descubrir colección</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="hero__slide">
+          <div class="hero__fondo hero__fondo--foto hero__fondo--fiesta" style="background-image: url('{% static 'img/hero/hero-fiesta.jpg' %}')"></div>
+          <div class="hero__velo hero__velo--fiesta"></div>
+          <div class="hero__luces" aria-hidden="true">{% for i in "123456789012" %}<span></span>{% endfor %}</div>
+          <img src="{% static 'img/hero/stronger-with-you.png' %}" alt="Emporio Armani Stronger With You Intensely" class="hero__frasco hero__frasco--foto hero__frasco--stronger">
+          <div class="container-xl">
+            <div class="hero__contenido">
+              <p class="subtitulo text-white-50 mb-0">Cyber Franchesco</p>
+              <h1 class="hero__titulo">Hasta 30% OFF</h1>
+              <p class="hero__texto mb-4">En fragancias seleccionadas, por tiempo limitado.</p>
+              <a href="{% url 'tienda:catalogo' %}?oferta=1" class="btn btn-light">Ver ofertas</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="hero__slide">
+          <div class="hero__fondo hero__fondo--foto hero__fondo--montana" style="background-image: url('{% static 'img/hero/hero-montana.jpg' %}')"></div>
+          <div class="container-xl">
+            <div class="hero__contenido hero__contenido--montana">
+              <p class="subtitulo mb-0">Tu próxima aventura</p>
+              <h1 class="hero__titulo">Encontrá<br>tu fragancia</h1>
+              <p class="hero__texto mb-4">Explorá cientos de aromas hasta dar con el tuyo.</p>
+              <a href="{% url 'tienda:catalogo' %}" class="btn btn-negro">Explorar catálogo</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarrusel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span><span class="visually-hidden">Anterior</span></button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarrusel" data-bs-slide="next"><span class="carousel-control-next-icon"></span><span class="visually-hidden">Siguiente</span></button>
+  </div>
+</section>
+
+{# ---------- BENEFICIOS ---------- #}
+<section class="py-4 border-bottom">
+  <div class="container-xl">
+    <div class="row g-4" data-reveal-grupo>
+      <div class="col-6 col-lg-3" data-reveal><div class="beneficio"><i class="bi bi-truck"></i><div><h6>Envíos a todo el país</h6><p>Gratis desde $150.000</p></div></div></div>
+      <div class="col-6 col-lg-3" data-reveal><div class="beneficio"><i class="bi bi-credit-card-2-front"></i><div><h6>6 cuotas sin interés</h6><p>Con todas las tarjetas</p></div></div></div>
+      <div class="col-6 col-lg-3" data-reveal><div class="beneficio"><i class="bi bi-patch-check"></i><div><h6>100% originales</h6><p>Garantía de autenticidad</p></div></div></div>
+      <div class="col-6 col-lg-3" data-reveal><div class="beneficio"><i class="bi bi-shield-lock"></i><div><h6>Compra segura</h6><p>Tus datos protegidos</p></div></div></div>
+    </div>
+  </div>
+</section>
+
+{% include 'tienda/partials/slider.html' with productos=ofertas titulo='Ofertas imperdibles' subtitulo='Cyber Franchesco' ver_todo='/productos/?oferta=1' %}
+
+{# ---------- CATEGORÍAS POR GÉNERO ---------- #}
+<section class="py-5">
+  <div class="container-xl">
+    <div class="text-center mb-4" data-reveal>
+      <p class="subtitulo mb-2">Encontrá tu estilo</p>
+      <h2 class="titulo-seccion">Comprá por categoría</h2>
+    </div>
+    <div class="row g-3 g-md-4" data-reveal-grupo>
+      <div class="col-12 col-md-4" data-reveal="zoom">
+        <a href="{% url 'tienda:catalogo' %}?genero=F" class="tile-cat">
+          <div class="tile-cat__fondo tile-mujer">{% include 'tienda/partials/silueta.html' with texto='ELLA' %}</div>
+          <div class="tile-cat__texto"><h3>Mujer</h3><span>Ver perfumes <i class="bi bi-arrow-right"></i></span></div>
+        </a>
+      </div>
+      <div class="col-12 col-md-4" data-reveal="zoom">
+        <a href="{% url 'tienda:catalogo' %}?genero=M" class="tile-cat">
+          <div class="tile-cat__fondo tile-hombre">{% include 'tienda/partials/silueta.html' with texto='ÉL' %}</div>
+          <div class="tile-cat__texto"><h3>Hombre</h3><span>Ver perfumes <i class="bi bi-arrow-right"></i></span></div>
+        </a>
+      </div>
+      <div class="col-12 col-md-4" data-reveal="zoom">
+        <a href="{% url 'tienda:catalogo' %}?genero=U" class="tile-cat">
+          <div class="tile-cat__fondo tile-unisex">{% include 'tienda/partials/silueta.html' with texto='TODOS' %}</div>
+          <div class="tile-cat__texto"><h3>Unisex</h3><span>Ver perfumes <i class="bi bi-arrow-right"></i></span></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include 'tienda/partials/slider.html' with productos=novedades titulo='Novedades' subtitulo='Recién llegados' ver_todo='/productos/?nuevo=1' %}
+
+{# ---------- BANNER CUPÓN ---------- #}
+{% if cupon_destacado %}
+<section class="py-4">
+  <div class="container-xl">
+    <div class="banner-cupon" data-reveal="zoom">
+      <div class="row align-items-center g-4 position-relative">
+        <div class="col-lg-7">
+          <p class="subtitulo text-white-50 mb-2">Beneficio exclusivo</p>
+          <h2 class="titulo-seccion mb-2">{{ cupon_destacado.descripcion|default:cupon_destacado.resumen }}</h2>
+          <p class="texto-serif fs-5 mb-0 opacity-75">Registrate, elegí tus fragancias y aplicá el código al finalizar la compra.</p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+          <button type="button" class="codigo-cupon text-white bg-transparent" data-copiar="{{ cupon_destacado.codigo }}" title="Copiar código">
+            {{ cupon_destacado.codigo }} <i class="bi bi-copy"></i>
+          </button>
+          {% if not user.is_authenticated %}
+          <div class="mt-3"><a href="{% url 'cuentas:registro' %}" class="btn btn-acento">Crear mi cuenta</a></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% include 'tienda/partials/slider.html' with productos=destacados titulo='Destacados' subtitulo='Los favoritos de Franchesco' ver_todo='/productos/' %}
+{% include 'tienda/partials/slider.html' with productos=mas_vendidos titulo='Los más elegidos' subtitulo='Top ventas' %}
+{% endblock %}

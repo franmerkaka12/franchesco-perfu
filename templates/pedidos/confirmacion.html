@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load tienda_extras %}
+
+{% block title %}¡Gracias por tu compra! · Franchesco{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:760px">
+  <div class="pasos"><span>1. Carrito</span><span>—</span><span>2. Datos y pago</span><span>—</span><span class="activo">3. Confirmación</span></div>
+  <div class="text-center mb-5">
+    <svg class="check-exito mb-3" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#2f7d4f" stroke-width="4"/>
+      <path d="M30 52 L44 66 L72 36" fill="none" stroke="#2f7d4f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 class="titulo-seccion" data-reveal>¡Gracias por tu compra, {{ pedido.nombre }}!</h1>
+    <p class="text-muted" data-reveal>Tu pedido <strong class="text-dark">{{ pedido.codigo }}</strong> fue registrado correctamente.</p>
+  </div>
+
+  <div class="resumen mb-4" data-reveal>
+    <div class="row g-3 small">
+      <div class="col-sm-6"><span class="text-muted d-block">Total</span><strong class="fs-4">{{ pedido.total|pesos }}</strong></div>
+      <div class="col-sm-6"><span class="text-muted d-block">Medio de pago</span><strong>{{ pedido.pago.get_metodo_display }}</strong></div>
+      <div class="col-sm-6"><span class="text-muted d-block">Entrega en</span>{{ pedido.direccion }}, {{ pedido.ciudad }} ({{ pedido.codigo_postal }})</div>
+      <div class="col-sm-6"><span class="text-muted d-block">Estado</span><span class="badge-estado text-bg-{{ pedido.color_estado }}">{{ pedido.get_estado_display }}</span></div>
+    </div>
+  </div>
+
+  <div class="info-envio mb-4" data-reveal>
+    {% if pedido.pago.metodo == 'transferencia' %}
+      <p class="fw-bold mb-2"><i class="bi bi-bank me-2"></i>Datos para la transferencia</p>
+      <p class="mb-1">Banco: Banco Ejemplo · CBU: 0000003100000000000000 · Alias: FRANCHESCO.PERFUMES</p>
+      <p class="mb-0">Indicá el código <strong>{{ pedido.codigo }}</strong> en el concepto. Enviaremos tu pedido cuando se acredite el pago.</p>
+    {% elif pedido.pago.metodo == 'mercadopago' %}
+      <p class="mb-0"><i class="bi bi-wallet2 me-2"></i>Te enviaremos un link de pago de Mercado Pago a <strong>{{ pedido.email }}</strong>.</p>
+    {% else %}
+      <p class="mb-0"><i class="bi bi-credit-card me-2"></i>Nos comunicaremos al {{ pedido.telefono }} para finalizar el cobro con tu tarjeta de forma segura.</p>
+    {% endif %}
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 justify-content-center">
+    <a href="{{ pedido.get_absolute_url }}" class="btn btn-negro px-4">Ver detalle del pedido</a>
+    <a href="{% url 'tienda:catalogo' %}" class="btn btn-borde px-4">Seguir comprando</a>
+  </div>
+</div>
+{% endblock %}

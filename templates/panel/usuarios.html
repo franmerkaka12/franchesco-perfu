@@ -1,0 +1,39 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Usuarios{% endblock %}
+{% block encabezado %}Usuarios{% endblock %}
+
+{% block content %}
+<div class="tarjeta">
+  <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+    <div class="chips-estado">
+      <a href="?" class="{% if not rol %}activo{% endif %}">Todos</a>
+      <a href="?rol=cliente" class="{% if rol == 'cliente' %}activo{% endif %}">Clientes</a>
+      <a href="?rol=admin" class="{% if rol == 'admin' %}activo{% endif %}">Administradores</a>
+    </div>
+    <form method="get" class="d-flex gap-2">
+      {% if rol %}<input type="hidden" name="rol" value="{{ rol }}">{% endif %}
+      <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Nombre o email">
+      <button class="btn btn-negro btn-sm"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-panel">
+      <thead><tr><th>Usuario</th><th>Teléfono</th><th>Perfil</th><th class="text-center">Pedidos</th><th>Alta</th><th class="text-center">Estado</th><th></th></tr></thead>
+      <tbody>
+      {% for u in pagina %}
+        <tr>
+          <td><strong>{{ u.get_full_name|default:"—" }}</strong><div class="small text-muted">{{ u.email }}</div></td>
+          <td class="small">{{ u.telefono|default:"—" }}</td>
+          <td>{% if u.es_admin %}<span class="badge-estado text-bg-dark">Administrador</span>{% else %}<span class="badge-estado text-bg-light border">Cliente</span>{% endif %}</td>
+          <td class="text-center">{{ u.num_pedidos }}</td>
+          <td class="small">{{ u.date_joined|date:"d/m/Y" }}</td>
+          <td class="text-center">{% if u.is_active %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-slash-circle text-danger" title="Desactivado"></i>{% endif %}</td>
+          <td class="text-end"><a href="{% url 'panel:usuario_editar' u.pk %}" class="btn btn-light btn-icono"><i class="bi bi-pencil"></i></a></td>
+        </tr>
+      {% empty %}<tr><td colspan="7" class="text-center text-muted py-4">Sin usuarios.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'panel/paginacion.html' %}
+</div>
+{% endblock %}

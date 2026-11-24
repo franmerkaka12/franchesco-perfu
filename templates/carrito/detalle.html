@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load tienda_extras %}
+
+{% block title %}Mi carrito · Franchesco{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+  <div class="pasos" data-reveal><span class="activo">1. Carrito</span><span>—</span><span>2. Datos y pago</span><span>—</span><span>3. Confirmación</span></div>
+  <h1 class="titulo-seccion mb-4" data-reveal>Mi carrito</h1>
+
+  {% if carrito.vacio %}
+    <div class="vacio-estado" data-reveal>
+      <i class="bi bi-bag"></i>
+      <h3 class="titulo-seccion fs-1 mt-3">Tu carrito está vacío</h3>
+      <p class="text-muted">Explorá nuestro catálogo y encontrá tu próxima fragancia.</p>
+      <a href="{% url 'tienda:catalogo' %}" class="btn btn-negro mt-2 px-4 py-2">Ir a la tienda</a>
+    </div>
+  {% else %}
+  <div class="row g-4 g-lg-5">
+    <div class="col-lg-8">
+      {% for l in carrito %}
+      <div class="linea-carrito" style="animation-delay: {{ forloop.counter0 }}00ms">
+        <a href="{{ l.producto.get_absolute_url }}" class="linea-carrito__img">{% include 'tienda/partials/imagen.html' with producto=l.producto %}</a>
+        <div>
+          <p class="fw-bold small text-uppercase mb-0">{{ l.producto.marca }}</p>
+          <a href="{{ l.producto.get_absolute_url }}" class="d-block">{{ l.producto.nombre }}</a>
+          <p class="small text-muted mb-1">{{ l.producto.get_tipo_display }} · {{ l.producto.volumen_ml }} ml</p>
+          <p class="small mb-0">
+            {{ l.precio_unitario|pesos }} c/u
+            {% if l.producto.descuento_pct %}<del class="text-muted ms-1">{{ l.producto.precio|pesos }}</del> <span class="badge-off position-static ms-1">{{ l.producto.descuento_pct }}%</span>{% endif %}
+          </p>
+          {% if l.stock_insuficiente %}<p class="small text-danger mb-0 mt-1"><i class="bi bi-exclamation-triangle"></i> Solo quedan {{ l.producto.stock }} unidades.</p>{% endif %}
+        </div>
+        <div class="linea-carrito__acciones text-end">
+          <form method="post" action="{% url 'carrito:actualizar' l.producto.pk %}" class="js-autoenviar mb-2">
+            {% csrf_token %}
+            <div class="selector-cantidad chico">
+              <button type="button" data-cantidad="-1" aria-label="Quitar uno"><i class="bi bi-dash"></i></button>
+              <input type="number" name="cantidad" value="{{ l.cantidad }}" min="1" max="{{ l.producto.stock }}" aria-label="Cantidad">
+              <button type="button" data-cantidad="1" aria-label="Agregar uno"><i class="bi bi-plus"></i></button>
+            </div>
+          </form>
+          <p class="fw-bold mb-1">{{ l.subtotal|pesos }}</p>
+          <form method="post" action="{% url 'carrito:eliminar' l.producto.pk %}">
+            {% csrf_token %}<button class="btn-quitar"><i class="bi bi-trash3"></i> Eliminar</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+      <a href="{% url 'tienda:catalogo' %}" class="btn-link-sub d-inline-block mt-4"><i class="bi bi-arrow-left me-1"></i> Seguir comprando</a>
+    </div>
+
+    {# ---------- RESUMEN (CU-16 / RF-09) ---------- #}
+    <div class="col-lg-4">
+      <div class="resumen" data-reveal>
+        <h5 class="fw-bold mb-4">Resumen de compra</h5>
+        <div class="fila"><span>Productos ({{ carrito_cantidad }})</span><span>{{ carrito.subtotal_sin_promos|pesos }}</span></div>
+        {% if carrito.ahorro_promociones %}
+        <div class="fila text-success"><span>Descuentos por promoción</span><span>-{{ carrito.ahorro_promociones|pesos }}</span></div>
+        {% endif %}
+        {% if carrito.cupon %}
+        <div class="fila text-success">
+          <span>Cupón <strong>{{ carrito.cupon.codigo }}</strong>
+            <form method="post" action="{% url 'carrito:quitar_cupon' %}" class="d-inline">{% csrf_token %}<button class="btn-quitar ms-1">quitar</button></form>
+          </span>
+          <span>-{{ carrito.descuento_cupon|pesos }}</span>
+        </div>
+        {% endif %}
+        <div class="fila"><span>Envío</span><span class="text-muted small">{% if carrito.total >= 150000 %}<span class="text-success fw-semibold">¡Gratis!</span>{% else %}Se calcula al confirmar{% endif %}</span></div>
+        <div class="fila total"><span>Total</span><span>{{ carrito.total|pesos }}</span></div>
+        <p class="small text-muted text-end mb-4">o 6 cuotas de {{ carrito.total|cuota:6 }}</p>
+
+        {% if user.is_authenticated %}
+          {% if not carrito.cupon %}
+          <form method="post" action="{% url 'carrito:aplicar_cupon' %}" class="mb-3">
+            {% csrf_token %}
+            <label class="form-label" for="codigoCupon">¿Tenés un cupón?</label>
+            <div class="input-group">
+              <input type="text" id="codigoCupon" name="codigo" class="form-control text-uppercase" placeholder="Código" required>
+              <button class="btn btn-borde">Aplicar</button>
+            </div>
+          </form>
+          {% endif %}
+          <a href="{% url 'pedidos:checkout' %}" class="btn btn-negro w-100 py-3 {% if carrito.hay_problemas_de_stock %}disabled{% endif %}">Finalizar compra <i class="bi bi-arrow-right ms-1"></i></a>
+          {% if carrito.hay_problemas_de_stock %}<p class="small text-danger mt-2 mb-0">Ajustá las cantidades marcadas para continuar.</p>{% endif %}
+        {% else %}
+          {# RF-10: para comprar es necesario iniciar sesión #}
+          <div class="alert alert-light border small"><i class="bi bi-person-lock me-1"></i> Para finalizar tu compra necesitás una cuenta. ¡Tu carrito se conserva!</div>
+          <a href="{% url 'cuentas:login' %}?next={% url 'pedidos:checkout' %}" class="btn btn-negro w-100 py-3 mb-2">Iniciar sesión y comprar</a>
+          <a href="{% url 'cuentas:registro' %}?next={% url 'pedidos:checkout' %}" class="btn btn-borde w-100 py-2">Crear cuenta</a>
+        {% endif %}
+        <p class="small text-muted text-center mt-3 mb-0"><i class="bi bi-shield-lock me-1"></i>Compra 100% segura</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

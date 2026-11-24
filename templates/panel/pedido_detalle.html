@@ -1,0 +1,68 @@
+{% extends 'panel/base_panel.html' %}
+{% load tienda_extras %}
+{% block title %}Pedido {{ pedido.codigo }}{% endblock %}
+{% block encabezado %}Pedido {{ pedido.codigo }}{% endblock %}
+{% block acciones %}<a href="{% url 'panel:pedidos' %}" class="btn btn-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="tarjeta">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Productos</h5>
+        <span class="badge-estado text-bg-{{ pedido.color_estado }}">{{ pedido.get_estado_display }}</span>
+      </div>
+      <table class="table table-panel">
+        <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Precio unit.</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+        {% for d in pedido.detalles.all %}
+          <tr>
+            <td><strong class="small d-block text-uppercase">{{ d.marca }}</strong>{{ d.nombre_producto }}{% if d.producto %} <span class="small text-muted">(stock actual: {{ d.producto.stock }})</span>{% endif %}</td>
+            <td class="text-center">{{ d.cantidad }}</td>
+            <td class="text-end">{{ d.precio_unitario|pesos }}</td>
+            <td class="text-end fw-semibold">{{ d.subtotal|pesos }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">{{ pedido.subtotal|pesos }}</td></tr>
+          {% if pedido.descuento %}<tr class="text-success"><td colspan="3" class="text-end">Descuento{% if pedido.cupon %} (cupón {{ pedido.cupon.codigo }}){% endif %}</td><td class="text-end">-{{ pedido.descuento|pesos }}</td></tr>{% endif %}
+          <tr class="fs-5"><td colspan="3" class="text-end fw-bold">Total</td><td class="text-end fw-bold">{{ pedido.total|pesos }}</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="tarjeta mb-3" style="height:auto">
+      <h5>Cambiar estado</h5>
+      {% if pedido.estado == 'cancelado' %}
+        <p class="small text-muted mb-0">Este pedido fue cancelado: el stock ya fue repuesto y no puede modificarse.</p>
+      {% else %}
+      <form method="post" data-confirmar="¿Confirmás el cambio de estado del pedido? Si lo cancelás, el stock se repone automáticamente.">
+        {% csrf_token %}
+        {{ form.estado }}
+        <button class="btn btn-negro w-100 mt-2">Actualizar estado</button>
+      </form>
+      <p class="small text-muted mt-2 mb-0">Al marcarlo como pagado o posterior, el pago queda aprobado.</p>
+      {% endif %}
+    </div>
+    <div class="tarjeta mb-3" style="height:auto">
+      <h5>Cliente y entrega</h5>
+      <p class="mb-1 fw-semibold">{{ pedido.nombre }} {{ pedido.apellido }}</p>
+      <p class="small mb-1"><i class="bi bi-envelope me-1"></i>{{ pedido.email }}</p>
+      <p class="small mb-1"><i class="bi bi-telephone me-1"></i>{{ pedido.telefono }}</p>
+      <p class="small mb-0"><i class="bi bi-geo-alt me-1"></i>{{ pedido.direccion }}, {{ pedido.ciudad }} ({{ pedido.codigo_postal }})</p>
+      {% if pedido.notas %}<p class="small mt-2 mb-0 text-muted">Notas: {{ pedido.notas }}</p>{% endif %}
+      <a href="{% url 'panel:usuario_editar' pedido.usuario.pk %}" class="small d-inline-block mt-2">Ver cuenta del cliente</a>
+    </div>
+    <div class="tarjeta" style="height:auto">
+      <h5>Pago</h5>
+      <p class="small mb-1">Método: <strong>{{ pedido.pago.get_metodo_display }}</strong></p>
+      <p class="small mb-1">Estado: <strong>{{ pedido.pago.get_estado_display }}</strong></p>
+      <p class="small mb-1">Monto: <strong>{{ pedido.pago.monto|pesos }}</strong></p>
+      <p class="small mb-0 text-muted">Registrado el {{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

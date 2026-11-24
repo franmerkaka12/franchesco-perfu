@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load tienda_extras %}
+
+{% block title %}Finalizar compra · Franchesco{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+  <div class="pasos" data-reveal><span>1. Carrito</span><span>—</span><span class="activo">2. Datos y pago</span><span>—</span><span>3. Confirmación</span></div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="row g-4 g-lg-5">
+      <div class="col-lg-7" data-reveal="izq">
+        <h1 class="titulo-seccion mb-4">Datos de entrega</h1>
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="row g-3">
+          {% for campo in form %}{% if campo.name != 'metodo_pago' and campo.name != 'guardar_datos' %}
+          <div class="{% if campo.name == 'direccion' or campo.name == 'notas' %}col-12{% else %}col-md-6{% endif %}">
+            <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+            {{ campo }}
+            {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+          {% endif %}{% endfor %}
+          <div class="col-12">
+            <div class="form-check">{{ form.guardar_datos }} <label class="form-check-label small" for="{{ form.guardar_datos.id_for_label }}">{{ form.guardar_datos.label }}</label></div>
+          </div>
+        </div>
+
+        {# CU-19: seleccionar medio de pago #}
+        <h2 class="titulo-seccion fs-1 mt-5 mb-3">Medio de pago</h2>
+        <div class="row g-3">
+          {% for opcion in form.metodo_pago %}
+          <div class="col-sm-6">
+            <label class="pago-opcion">
+              {{ opcion.tag }}
+              <span class="caja">
+                {% if opcion.data.value == 'credito' %}<i class="bi bi-credit-card-2-front"></i>
+                {% elif opcion.data.value == 'debito' %}<i class="bi bi-credit-card"></i>
+                {% elif opcion.data.value == 'transferencia' %}<i class="bi bi-bank"></i>
+                {% else %}<i class="bi bi-wallet2"></i>{% endif %}
+                <span>
+                  <strong class="d-block small">{{ opcion.choice_label }}</strong>
+                  <span class="small text-muted">
+                    {% if opcion.data.value == 'credito' %}Hasta 6 cuotas sin interés{% elif opcion.data.value == 'debito' %}Pago en un solo débito{% elif opcion.data.value == 'transferencia' %}Te enviamos los datos bancarios{% else %}Pagá con tu cuenta{% endif %}
+                  </span>
+                </span>
+              </span>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        {% for e in form.metodo_pago.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        <p class="small text-muted mt-3"><i class="bi bi-info-circle me-1"></i>El pago se coordina con la tienda luego de confirmar el pedido. Nunca te pediremos los datos de tu tarjeta por este formulario.</p>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="resumen" data-reveal>
+          <h5 class="fw-bold mb-3">Tu pedido</h5>
+          {% for l in carrito %}
+          <div class="d-flex gap-3 align-items-center mb-3">
+            <div class="linea-carrito__img" style="width:60px;height:60px">{% include 'tienda/partials/imagen.html' with producto=l.producto %}</div>
+            <div class="flex-grow-1 small">
+              <strong class="d-block text-uppercase">{{ l.producto.marca }}</strong>
+              {{ l.producto.nombre }} <span class="text-muted">x{{ l.cantidad }}</span>
+            </div>
+            <span class="small fw-semibold">{{ l.subtotal|pesos }}</span>
+          </div>
+          {% endfor %}
+          <hr>
+          <div class="fila"><span>Subtotal</span><span>{{ carrito.subtotal|pesos }}</span></div>
+          {% if carrito.cupon %}<div class="fila text-success"><span>Cupón {{ carrito.cupon.codigo }}</span><span>-{{ carrito.descuento_cupon|pesos }}</span></div>{% endif %}
+          <div class="fila total"><span>Total</span><span>{{ carrito.total|pesos }}</span></div>
+          <button type="submit" class="btn btn-negro w-100 py-3 mt-3">Confirmar compra <i class="bi bi-lock ms-1"></i></button>
+          <a href="{% url 'carrito:detalle' %}" class="d-block text-center small mt-3 text-decoration-underline">Volver al carrito</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

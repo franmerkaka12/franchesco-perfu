@@ -1,0 +1,57 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Stock{% endblock %}
+{% block encabezado %}Control de stock{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="tarjeta kpi kpi-3"><div class="icono"><i class="bi bi-boxes"></i></div><div><div class="valor">{{ unidades }}</div><div class="etiqueta">Unidades en stock</div></div></div></div>
+  <div class="col-md-4"><a href="?filtro=bajo" class="text-reset text-decoration-none"><div class="tarjeta kpi kpi-2"><div class="icono"><i class="bi bi-exclamation-triangle"></i></div><div><div class="valor">{{ bajos }}</div><div class="etiqueta">Con stock bajo (≤ {{ umbral }})</div></div></div></a></div>
+  <div class="col-md-4"><a href="?filtro=agotado" class="text-reset text-decoration-none"><div class="tarjeta kpi"><div class="icono" style="background:#fbe4e2;color:#b3261e"><i class="bi bi-x-octagon"></i></div><div><div class="valor">{{ agotados }}</div><div class="etiqueta">Agotados</div></div></div></a></div>
+</div>
+
+<div class="tarjeta">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <div class="chips-estado">
+      <a href="?" class="{% if not filtro %}activo{% endif %}">Todos</a>
+      <a href="?filtro=bajo" class="{% if filtro == 'bajo' %}activo{% endif %}">Stock bajo</a>
+      <a href="?filtro=agotado" class="{% if filtro == 'agotado' %}activo{% endif %}">Agotados</a>
+    </div>
+    <form method="get" class="d-flex gap-2">
+      {% if filtro %}<input type="hidden" name="filtro" value="{{ filtro }}">{% endif %}
+      <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar producto">
+      <button class="btn btn-negro btn-sm"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-panel">
+      <thead><tr><th>Producto</th><th class="text-center">Stock actual</th><th>Actualizar stock</th><th class="small">Última modificación</th></tr></thead>
+      <tbody>
+      {% for p in pagina %}
+        <tr>
+          <td><strong class="small d-block text-uppercase">{{ p.marca }}</strong>{{ p.nombre }} <span class="text-muted small">· {{ p.volumen_ml }} ml</span>{% if not p.activo %} <span class="badge text-bg-secondary">Oculto</span>{% endif %}</td>
+          <td class="text-center"><span class="stock-pill {% if p.stock == 0 %}stock-agotado{% elif p.stock_bajo %}stock-bajo{% else %}stock-ok{% endif %}">{{ p.stock }}</span></td>
+          <td>
+            <form method="post" action="{% url 'panel:stock_actualizar' p.pk %}" class="d-flex gap-2 align-items-center" style="max-width:340px">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <select name="modo" class="form-select form-select-sm" style="width:auto">
+                <option value="sumar">Sumar (reposición)</option>
+                <option value="fijar">Fijar cantidad</option>
+              </select>
+              <input type="number" name="valor" class="form-control form-control-sm" style="width:90px" placeholder="0" required>
+              <button class="btn btn-acento btn-sm"><i class="bi bi-check-lg"></i></button>
+            </form>
+          </td>
+          <td class="small text-muted">{{ p.actualizado|date:"d/m/Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No hay productos para mostrar.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="small text-muted mb-0"><i class="bi bi-info-circle me-1"></i>En modo “Sumar” podés ingresar números negativos para registrar bajas (roturas, ajustes). El stock se descuenta automáticamente con cada compra y se repone si un pedido se cancela.</p>
+  {% include 'panel/paginacion.html' %}
+</div>
+{% endblock %}

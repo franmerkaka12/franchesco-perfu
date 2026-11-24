@@ -1,0 +1,28 @@
+{% extends 'cuentas/base_cuenta.html' %}
+{% load tienda_extras %}
+{% block title %}Mi cuenta · Franchesco{% endblock %}
+{% block cuenta_contenido %}
+<h1 class="titulo-seccion mb-1" data-reveal>Mis datos</h1>
+<p class="text-muted small mb-4">Cliente desde {{ user.date_joined|date:"F Y" }}</p>
+
+<form method="post" novalidate class="mb-5" data-reveal>
+  {% csrf_token %}
+  {% include 'partials/campos.html' %}
+  <button class="btn btn-negro px-4 mt-4">Guardar cambios</button>
+</form>
+
+{% if ultimos_pedidos %}
+<div data-reveal>
+  <div class="d-flex justify-content-between align-items-end mb-3">
+    <h2 class="titulo-seccion fs-1 mb-0">Últimos pedidos</h2>
+    <a href="{% url 'pedidos:mis_pedidos' %}" class="btn-link-sub">Ver todos</a>
+  </div>
+  {% for pedido in ultimos_pedidos %}
+  <a href="{{ pedido.get_absolute_url }}" class="tarjeta-pedido mb-2 d-flex justify-content-between align-items-center">
+    <span><strong>{{ pedido.codigo }}</strong> <span class="text-muted small ms-2">{{ pedido.fecha|date:"d/m/Y" }}</span></span>
+    <span><span class="badge-estado text-bg-{{ pedido.color_estado }} me-3">{{ pedido.get_estado_display }}</span><strong>{{ pedido.total|pesos }}</strong></span>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

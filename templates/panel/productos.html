@@ -1,0 +1,63 @@
+{% extends 'panel/base_panel.html' %}
+{% load tienda_extras %}
+{% block title %}Productos{% endblock %}
+{% block encabezado %}Productos{% endblock %}
+{% block acciones %}<a href="{% url 'panel:producto_crear' %}" class="btn btn-negro btn-sm"><i class="bi bi-plus-lg me-1"></i>Nuevo producto</a>{% endblock %}
+
+{% block content %}
+<div class="tarjeta">
+  <form class="row g-2 mb-3 filtros-barra" method="get">
+    <div class="col-md-4"><input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre o marca"></div>
+    <div class="col-6 col-md-2">
+      <select name="genero" class="form-select"><option value="">Género</option>{% for v, l in generos %}<option value="{{ v }}" {% if request.GET.genero == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="categoria" class="form-select"><option value="">Categoría</option>{% for c in categorias %}<option value="{{ c.pk }}" {% if request.GET.categoria == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="estado" class="form-select">
+        <option value="">Todos</option>
+        <option value="publicados" {% if request.GET.estado == 'publicados' %}selected{% endif %}>Publicados</option>
+        <option value="ocultos" {% if request.GET.estado == 'ocultos' %}selected{% endif %}>Ocultos</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2 d-grid"><button class="btn btn-negro"><i class="bi bi-funnel me-1"></i>Filtrar</button></div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-panel">
+      <thead><tr><th>Producto</th><th>Categoría</th><th>Género</th><th class="text-end">Precio</th><th class="text-center">Stock</th><th class="text-center">Estado</th><th class="text-end">Acciones</th></tr></thead>
+      <tbody>
+      {% for p in pagina %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <div class="mini-img">{% include 'tienda/partials/imagen.html' with producto=p %}</div>
+              <div><strong class="d-block small text-uppercase">{{ p.marca }}</strong>{{ p.nombre }} <span class="text-muted small">· {% for v in p.familia %}{{ v.volumen_ml }}{% if not forloop.last %} / {% endif %}{% endfor %} ml</span>
+                {% if p.destacado %}<i class="bi bi-star-fill text-warning small ms-1" title="Destacado"></i>{% endif %}
+                {% if p.es_nuevo %}<span class="badge text-bg-dark ms-1" style="font-size:.55rem">NUEVO</span>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="small">{{ p.categoria|default:"—" }}</td>
+          <td class="small">{{ p.get_genero_display }}</td>
+          <td class="text-end fw-semibold">{{ p.precio|pesos }}</td>
+          <td class="text-center"><span class="stock-pill {% if p.stock == 0 %}stock-agotado{% elif p.stock_bajo %}stock-bajo{% else %}stock-ok{% endif %}">{{ p.stock }}</span></td>
+          <td class="text-center">{% if p.activo %}<span class="badge-estado text-bg-success">Publicado</span>{% else %}<span class="badge-estado text-bg-secondary">Oculto</span>{% endif %}</td>
+          <td class="text-end text-nowrap">
+            {% if p.activo %}<a href="{{ p.get_absolute_url }}" target="_blank" class="btn btn-light btn-icono" title="Ver en tienda"><i class="bi bi-eye"></i></a>{% endif %}
+            <a href="{% url 'panel:producto_editar' p.pk %}" class="btn btn-light btn-icono" title="Editar"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{% url 'panel:producto_eliminar' p.pk %}" class="d-inline" data-confirmar="¿Eliminar “{{ p.marca }} {{ p.nombre }}”? Si tiene ventas registradas, se ocultará del catálogo.">
+              {% csrf_token %}<button class="btn btn-light btn-icono text-danger" title="Eliminar"><i class="bi bi-trash3"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron productos.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'panel/paginacion.html' %}
+</div>
+{% endblock %}

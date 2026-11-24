@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load tienda_extras %}
+
+{% block title %}{{ producto.marca }} {{ producto.nombre }} · Franchesco{% endblock %}
+{% block description %}{{ producto.descripcion|truncatechars:150 }}{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <nav class="migas mb-4" data-reveal>
+    <a href="{% url 'tienda:inicio' %}">Inicio</a> /
+    <a href="{% url 'tienda:catalogo' %}?genero={{ producto.genero }}">{{ producto.get_genero_display }}</a> /
+    <a href="{% url 'tienda:catalogo' %}?marca={{ producto.marca|urlencode }}">{{ producto.marca }}</a> /
+    {{ producto.nombre }}
+  </nav>
+
+  <div class="row g-4 g-lg-5">
+    <div class="col-lg-6" data-reveal="izq">
+      <div class="galeria position-relative">
+        {% if producto.descuento_pct %}<span class="badge-off fs-6">{{ producto.descuento_pct }}% OFF</span>{% endif %}
+        {% if producto.es_nuevo %}<span class="badge-new" style="top:1rem;bottom:auto;left:auto;right:1rem">NUEVO</span>{% endif %}
+        {% include 'tienda/partials/imagen.html' %}
+      </div>
+    </div>
+
+    <div class="col-lg-6" data-reveal>
+      <a href="{% url 'tienda:catalogo' %}?marca={{ producto.marca|urlencode }}" class="detalle-marca">{{ producto.marca }}</a>
+      <h1 class="detalle-nombre">{{ producto.nombre }}</h1>
+      <p class="text-muted text-uppercase small mb-3" style="letter-spacing:.1em">{{ producto.get_tipo_display }} · {{ producto.get_genero_display }}</p>
+
+      {% with fam=producto.familia %}
+      {% if fam|length > 1 %}
+        <p class="small fw-semibold text-uppercase mb-2" style="letter-spacing:.1em">Tamaño</p>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          {% for v in fam %}
+            <a href="{{ v.get_absolute_url }}" class="chip-ml chip-ml--opcion{% if v.pk == producto.pk %} activo{% endif %}{% if not v.disponible %} agotado{% endif %}"{% if v.pk == producto.pk %} aria-current="true"{% endif %}>{{ v.volumen_ml }} ML</a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <span class="chip-ml mb-4">{{ producto.volumen_ml }} ML</span>
+      {% endif %}
+      {% endwith %}
+
+      <div class="precio mb-1">
+        <span class="detalle-precio">{{ producto.precio_final|pesos }}</span>
+        {% if producto.descuento_pct %}<del class="fs-6">{{ producto.precio|pesos }}</del>{% endif %}
+      </div>
+      <span class="cuotas fs-6">6 cuotas sin interés de {{ producto.precio_final|cuota:6 }}</span>
+      <p class="sin-impuestos mt-1">Precio sin impuestos nacionales: {{ producto.precio_final|sin_impuestos }}</p>
+      {% if producto.promocion %}<p class="small text-acento fw-semibold"><i class="bi bi-tag-fill me-1"></i>{{ producto.promocion.nombre }} · válida hasta el {{ producto.promocion.fecha_fin|date:"d/m/Y" }}</p>{% endif %}
+
+      {# CU-03: disponibilidad de stock #}
+      <div class="mb-4">
+        {% if not producto.disponible %}
+          <span class="estado-stock agotado"><span class="punto"></span>Sin stock por el momento</span>
+        {% elif producto.stock_bajo %}
+          <span class="estado-stock bajo"><span class="punto"></span>¡Últimas {{ producto.stock }} unidades!</span>
+        {% else %}
+          <span class="estado-stock"><span class="punto"></span>En stock · listo para enviar</span>
+        {% endif %}
+      </div>
+
+      {% if producto.disponible %}
+      <form method="post" action="{% url 'carrito:agregar' producto.pk %}" class="js-add-cart d-flex flex-wrap gap-3 mb-4">
+        {% csrf_token %}
+        <div class="selector-cantidad">
+          <button type="button" data-cantidad="-1" aria-label="Quitar uno"><i class="bi bi-dash"></i></button>
+          <input type="number" name="cantidad" value="1" min="1" max="{{ producto.stock }}" aria-label="Cantidad">
+          <button type="button" data-cantidad="1" aria-label="Agregar uno"><i class="bi bi-plus"></i></button>
+        </div>
+        <button type="submit" class="btn-agregar flex-grow-1 justify-content-center py-3 fs-6"><span>Agregar al carrito</span> <i class="bi bi-bag"></i></button>
+      </form>
+      {% else %}
+        <button class="btn-agregar w-100 justify-content-center py-3 mb-4" disabled>Producto agotado</button>
+      {% endif %}
+
+      <div class="info-envio mb-4">
+        <p class="mb-2"><i class="bi bi-truck me-2"></i>Envío gratis en compras desde <strong>$150.000</strong></p>
+        <p class="mb-2"><i class="bi bi-patch-check me-2"></i>Producto 100% original con garantía</p>
+        <p class="mb-0"><i class="bi bi-person-lock me-2"></i>{% if user.is_authenticated %}Comprando como <strong>{{ user.email }}</strong>{% else %}Navegá libremente; para comprar <a href="{% url 'cuentas:login' %}?next={{ request.path|urlencode }}" class="text-decoration-underline">iniciá sesión</a>{% endif %}</p>
+      </div>
+
+      {% if producto.lista_notas %}
+      <h6 class="subtitulo mb-3">Notas olfativas</h6>
+      <div class="mb-4">{% for n in producto.lista_notas %}<span class="nota-chip">{{ n }}</span>{% endfor %}</div>
+      {% endif %}
+
+      <div class="accordion acordeon" id="infoProducto">
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#desc">Descripción</button></h2>
+          <div id="desc" class="accordion-collapse collapse show" data-bs-parent="#infoProducto"><div class="accordion-body">{{ producto.descripcion|default:"Sin descripción."|linebreaksbr }}</div></div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ficha">Ficha técnica</button></h2>
+          <div id="ficha" class="accordion-collapse collapse" data-bs-parent="#infoProducto">
+            <div class="accordion-body">
+              <dl class="row mb-0 small">
+                <dt class="col-5">Marca</dt><dd class="col-7">{{ producto.marca }}</dd>
+                <dt class="col-5">Concentración</dt><dd class="col-7">{{ producto.get_tipo_display }}</dd>
+                <dt class="col-5">Contenido</dt><dd class="col-7">{{ producto.volumen_ml }} ml</dd>
+                <dt class="col-5">Género</dt><dd class="col-7">{{ producto.get_genero_display }}</dd>
+                <dt class="col-5">Categoría</dt><dd class="col-7">{{ producto.categoria|default:"-" }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#envios">Envíos y medios de pago</button></h2>
+          <div id="envios" class="accordion-collapse collapse" data-bs-parent="#infoProducto">
+            <div class="accordion-body small">Despachamos tu pedido dentro de las 48 h hábiles posteriores a la acreditación del pago. Aceptamos tarjetas de crédito y débito, transferencia bancaria y Mercado Pago.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'tienda/partials/slider.html' with productos=relacionados titulo='También te puede gustar' subtitulo='Recomendados' %}
+{% endblock %}

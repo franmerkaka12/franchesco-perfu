@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load tienda_extras %}
+
+{% block title %}{{ titulo }} · Franchesco{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="encabezado-pagina" data-reveal>
+    <nav class="migas mb-2"><a href="{% url 'tienda:inicio' %}">Inicio</a> / <a href="{% url 'tienda:catalogo' %}">Productos</a>{% if titulo != 'Perfumes' %} / {{ titulo }}{% endif %}</nav>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+      <div>
+        <h1 class="titulo-seccion">{{ titulo }}</h1>
+        <p class="text-muted small mb-0 mt-2">{{ pagina.paginator.count }} producto{{ pagina.paginator.count|pluralize }}</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-borde btn-sm d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#filtros"><i class="bi bi-sliders me-1"></i>Filtrar</button>
+        <form method="get" class="d-flex align-items-center gap-2">
+          {% for clave, valores in request.GET.lists %}{% if clave != 'orden' and clave != 'page' %}{% for v in valores %}<input type="hidden" name="{{ clave }}" value="{{ v }}">{% endfor %}{% endif %}{% endfor %}
+          <label for="orden" class="small text-muted text-nowrap d-none d-sm-inline">Ordenar por</label>
+          <select id="orden" name="orden" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for clave, etiqueta in ordenes %}<option value="{{ clave }}" {% if clave == orden %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+          </select>
+        </form>
+      </div>
+    </div>
+
+    {% if filtros_activos %}
+    <div class="mt-3">
+      {% if q %}<a class="chip-filtro" href="{% url_con q='' page='' %}">“{{ q }}” <i class="bi bi-x"></i></a>{% endif %}
+      {% if categoria_sel %}<a class="chip-filtro" href="{% url_con categoria='' page='' %}">{{ categoria_sel.nombre }} <i class="bi bi-x"></i></a>{% endif %}
+      {% if genero_sel %}<a class="chip-filtro" href="{% url_con genero='' page='' %}">{% for v, l in generos %}{% if v == genero_sel %}{{ l }}{% endif %}{% endfor %} <i class="bi bi-x"></i></a>{% endif %}
+      {% if tipo_sel %}<a class="chip-filtro" href="{% url_con tipo='' page='' %}">{% for v, l in concentraciones %}{% if v == tipo_sel %}{{ l }}{% endif %}{% endfor %} <i class="bi bi-x"></i></a>{% endif %}
+      {% for m in marcas_sel %}<span class="chip-filtro">{{ m }}</span>{% endfor %}
+      {% if request.GET.oferta %}<a class="chip-filtro" href="{% url_con oferta='' page='' %}">En oferta <i class="bi bi-x"></i></a>{% endif %}
+      {% if request.GET.nuevo %}<a class="chip-filtro" href="{% url_con nuevo='' page='' %}">Novedades <i class="bi bi-x"></i></a>{% endif %}
+      <a href="{% url 'tienda:catalogo' %}" class="small ms-2 text-decoration-underline">Limpiar todo</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    {# ---------- FILTROS ---------- #}
+    <aside class="col-lg-3">
+      <div class="offcanvas-lg offcanvas-start" tabindex="-1" id="filtros" aria-labelledby="filtrosLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="filtrosLabel">Filtrar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filtros" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body d-block">
+          <form method="get" class="filtros w-100" data-reveal="izq">
+            {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+            <input type="hidden" name="orden" value="{{ orden }}">
+
+            <h6 class="mt-0">Género</h6>
+            <a class="filtro-link {% if not genero_sel %}activo{% endif %}" href="{% url_con genero='' page='' %}">Todos</a>
+            {% for valor, etiqueta in generos %}
+              <a class="filtro-link {% if genero_sel == valor %}activo{% endif %}" href="{% url_con genero=valor page='' %}">{{ etiqueta }}</a>
+            {% endfor %}
+            {% if genero_sel %}<input type="hidden" name="genero" value="{{ genero_sel }}">{% endif %}
+
+            <h6>Concentración</h6>
+            <a class="filtro-link {% if not tipo_sel %}activo{% endif %}" href="{% url_con tipo='' page='' %}">Todas</a>
+            {% for valor, etiqueta in concentraciones %}
+              <a class="filtro-link {% if tipo_sel == valor %}activo{% endif %}" href="{% url_con tipo=valor page='' %}">{{ etiqueta }}</a>
+            {% endfor %}
+            {% if tipo_sel %}<input type="hidden" name="tipo" value="{{ tipo_sel }}">{% endif %}
+
+            <h6>Categoría</h6>
+            <a class="filtro-link {% if not categoria_sel %}activo{% endif %}" href="{% url_con categoria='' page='' %}">Todas</a>
+            {% for c in nav_categorias %}
+              <a class="filtro-link {% if categoria_sel == c %}activo{% endif %}" href="{% url_con categoria=c.slug page='' %}">{{ c.nombre }}</a>
+            {% endfor %}
+            {% if categoria_sel %}<input type="hidden" name="categoria" value="{{ categoria_sel.slug }}">{% endif %}
+
+            <h6>Marca</h6>
+            <div class="lista-marcas">
+              {% for m in nav_marcas %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="marca" value="{{ m }}" id="marca{{ forloop.counter }}" {% if m in marcas_sel %}checked{% endif %}>
+                <label class="form-check-label" for="marca{{ forloop.counter }}">{{ m }}</label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <h6>Precio</h6>
+            <div class="d-flex gap-2">
+              <input type="number" class="form-control form-control-sm" name="min" value="{{ precio_min }}" placeholder="Mín." min="0" aria-label="Precio mínimo">
+              <input type="number" class="form-control form-control-sm" name="max" value="{{ precio_max }}" placeholder="Máx." min="0" aria-label="Precio máximo">
+            </div>
+
+            <h6>Otros</h6>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="oferta" value="1" id="fOferta" {% if request.GET.oferta %}checked{% endif %}>
+              <label class="form-check-label" for="fOferta">En oferta</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="nuevo" value="1" id="fNuevo" {% if request.GET.nuevo %}checked{% endif %}>
+              <label class="form-check-label" for="fNuevo">Novedades</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="disponibles" value="1" id="fDisp" {% if request.GET.disponibles %}checked{% endif %}>
+              <label class="form-check-label" for="fDisp">Solo con stock</label>
+            </div>
+
+            <button class="btn btn-negro w-100 mt-4">Aplicar filtros</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    {# ---------- GRILLA ---------- #}
+    <div class="col-lg-9">
+      {% if pagina.object_list %}
+        <div class="row g-3 g-md-4" data-reveal-grupo>
+          {% for p in pagina %}
+            <div class="col-6 col-md-4">{% include 'tienda/partials/card.html' %}</div>
+          {% endfor %}
+        </div>
+
+        {% if pagina.has_other_pages %}
+        <nav class="paginacion mt-5 d-flex justify-content-center" aria-label="Paginación">
+          <ul class="pagination">
+            {% if pagina.has_previous %}<li class="page-item"><a class="page-link" href="{% url_con page=pagina.previous_page_number %}" aria-label="Anterior"><i class="bi bi-chevron-left"></i></a></li>{% endif %}
+            {% for n in pagina.paginator.page_range %}
+              <li class="page-item {% if n == pagina.number %}active{% endif %}"><a class="page-link" href="{% url_con page=n %}">{{ n }}</a></li>
+            {% endfor %}
+            {% if pagina.has_next %}<li class="page-item"><a class="page-link" href="{% url_con page=pagina.next_page_number %}" aria-label="Siguiente"><i class="bi bi-chevron-right"></i></a></li>{% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      {% else %}
+        <div class="vacio-estado" data-reveal>
+          <i class="bi bi-search"></i>
+          <h3 class="titulo-seccion fs-1 mt-3">Sin resultados</h3>
+          <p class="text-muted">No encontramos productos con esos criterios. Probá con otra búsqueda o quitá algunos filtros.</p>
+          <a href="{% url 'tienda:catalogo' %}" class="btn btn-negro mt-2">Ver todos los productos</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

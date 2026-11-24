@@ -1,0 +1,1 @@
+{% if producto.imagen %}<img src="{{ producto.imagen.url }}" alt="{{ producto.marca }} {{ producto.nombre }}" loading="lazy">{% else %}{% include 'tienda/partials/frasco.html' %}{% endif %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-xl py-5">
+  <div class="row g-4 g-lg-5">
+    <aside class="col-lg-3" data-reveal="izq">
+      <p class="subtitulo mb-1">Mi cuenta</p>
+      <h5 class="fw-bold mb-4">{{ user.get_full_name|default:user.email }}</h5>
+      {% with r=request.resolver_match.url_name %}
+      <nav class="cuenta-nav">
+        <a href="{% url 'cuentas:perfil' %}" class="{% if r == 'perfil' %}activo{% endif %}"><i class="bi bi-person"></i>Mis datos</a>
+        <a href="{% url 'pedidos:mis_pedidos' %}" class="{% if r == 'mis_pedidos' or r == 'detalle' %}activo{% endif %}"><i class="bi bi-bag-check"></i>Mis pedidos</a>
+        <a href="{% url 'cuentas:cambiar_password' %}" class="{% if r == 'cambiar_password' %}activo{% endif %}"><i class="bi bi-key"></i>Cambiar contraseña</a>
+        {% if user.es_admin %}<a href="{% url 'panel:dashboard' %}"><i class="bi bi-speedometer2"></i>Panel administrativo</a>{% endif %}
+        <form action="{% url 'cuentas:logout' %}" method="post">{% csrf_token %}
+          <button class="btn btn-link text-danger text-decoration-none px-3 py-2 small"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button>
+        </form>
+      </nav>
+      {% endwith %}
+    </aside>
+    <div class="col-lg-9">
+      {% block cuenta_contenido %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

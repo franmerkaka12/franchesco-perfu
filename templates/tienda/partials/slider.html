@@ -1,0 +1,24 @@
+{# Carrusel horizontal de productos con flechas y barra de progreso #}
+{% if productos %}
+<section class="py-5">
+  <div class="container-xl">
+    <div class="d-flex justify-content-between align-items-end mb-4" data-reveal>
+      <div>
+        {% if subtitulo %}<p class="subtitulo mb-2">{{ subtitulo }}</p>{% endif %}
+        <h2 class="titulo-seccion">{{ titulo }}</h2>
+      </div>
+      {% if ver_todo %}<a href="{{ ver_todo }}" class="btn-link-sub d-none d-sm-inline">Ver todo</a>{% endif %}
+    </div>
+    <div class="slider">
+      <div class="slider__pista" data-reveal-grupo>
+        {% for p in productos %}{% include 'tienda/partials/card.html' %}{% endfor %}
+      </div>
+      <div class="slider__controles">
+        <div class="slider__progreso"><div class="slider__barra"></div></div>
+        <button class="slider__flecha" data-slider="prev" aria-label="Anterior"><i class="bi bi-arrow-left"></i></button>
+        <button class="slider__flecha" data-slider="next" aria-label="Siguiente"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}

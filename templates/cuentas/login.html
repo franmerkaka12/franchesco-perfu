@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ingresar · Franchesco{% endblock %}
+{% block content %}
+<section class="auth">
+  <div class="auth__visual auth__visual--dibujo">
+    <img src="{% static 'img/hero/login-dibujo-negro.png' %}" alt="" class="auth__dibujo">
+    <h2>Tu fragancia<br>te espera</h2>
+    <p class="texto-serif fs-5 mb-0 position-relative opacity-75">Ingresá para finalizar tus compras y seguir tus pedidos.</p>
+  </div>
+  <div class="auth__form">
+    <div>
+      <p class="subtitulo mb-1">Bienvenido/a</p>
+      <h1 class="titulo-seccion mb-4">Iniciar sesión</h1>
+      {% if next and '/pedidos/' in next %}
+        <div class="alert alert-light border small"><i class="bi bi-bag-check me-1"></i>Para completar tu compra ingresá a tu cuenta o registrate. Tu carrito se mantiene.</div>
+      {% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include 'partials/campos.html' with columna_unica=True %}
+        <div class="text-end mt-2"><a href="{% url 'cuentas:recuperar' %}" class="small text-decoration-underline">¿Olvidaste tu contraseña?</a></div>
+        <button class="btn btn-negro w-100 py-3 mt-3">Ingresar</button>
+      </form>
+      <p class="text-center small mt-4 mb-0">¿No tenés cuenta? <a href="{% url 'cuentas:registro' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="fw-bold text-decoration-underline">Registrate gratis</a></p>
+      <p class="text-center small text-muted mt-2"><a href="{% url 'tienda:catalogo' %}">Seguir navegando como invitado</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

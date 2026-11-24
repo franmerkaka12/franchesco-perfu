@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section class="auth">
+  <div class="auth__visual auth__visual--dibujo">
+    <img src="{% static 'img/hero/login-dibujo-negro.png' %}" alt="" class="auth__dibujo">
+    <h2>{% block visual_titulo %}Recuperá<br>tu cuenta{% endblock %}</h2>
+    <p class="texto-serif fs-5 mb-0 position-relative opacity-75">Te ayudamos a volver a entrar en un par de pasos.</p>
+  </div>
+  <div class="auth__form">
+    <div>
+      {% block formulario %}{% endblock %}
+    </div>
+  </div>
+</section>
+{% endblock %}

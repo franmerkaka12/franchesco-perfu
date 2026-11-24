@@ -1,0 +1,24 @@
+{# Renderiza los campos de cualquier formulario en una grilla de Bootstrap. #}
+{% if form.non_field_errors %}<div class="alert alert-danger small">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>{% endif %}
+{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+<div class="row g-3">
+{% for campo in form.visible_fields %}
+  {% if campo.widget_type == 'checkbox' %}
+  <div class="col-12">
+    <div class="form-check form-switch">
+      {{ campo }}
+      <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+      {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+      {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="{% if campo.widget_type == 'textarea' or campo.widget_type == 'selectmultiple' or campo.widget_type == 'clearablefile' or columna_unica %}col-12{% else %}col-md-6{% endif %}">
+    <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+    {{ campo }}
+    {% if campo.help_text %}<div class="form-text">{{ campo.help_text|safe }}</div>{% endif %}
+    {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  </div>
+  {% endif %}
+{% endfor %}
+</div>

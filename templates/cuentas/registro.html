@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Crear cuenta · Franchesco{% endblock %}
+{% block content %}
+<section class="auth">
+  <div class="auth__visual auth__visual--foto">
+    <img src="{% static 'img/hero/registro-presencia.jpg' %}?v=1" alt="Que tu presencia se haga notar" class="auth__foto">
+  </div>
+  <div class="auth__form">
+    <div>
+      <p class="subtitulo mb-1">Es rápido y gratis</p>
+      <h1 class="titulo-seccion mb-4">Crear cuenta</h1>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% include 'partials/campos.html' %}
+        <button class="btn btn-negro w-100 py-3 mt-4">Crear mi cuenta</button>
+      </form>
+      <p class="text-center small mt-4">¿Ya tenés cuenta? <a href="{% url 'cuentas:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="fw-bold text-decoration-underline">Iniciá sesión</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

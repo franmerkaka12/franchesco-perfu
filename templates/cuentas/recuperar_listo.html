@@ -1,0 +1,10 @@
+{% extends 'cuentas/recuperar_base.html' %}
+{% block title %}Contraseña actualizada · Franchesco{% endblock %}
+{% block formulario %}
+<div class="text-center">
+  <i class="bi bi-check-circle" style="font-size:3rem"></i>
+  <h1 class="titulo-seccion mt-3 mb-3">¡Listo!</h1>
+  <p class="text-muted mb-4">Tu contraseña se cambió correctamente. Ya podés entrar con la nueva.</p>
+  <a href="{% url 'cuentas:login' %}" class="btn btn-negro px-4 py-3">Iniciar sesión</a>
+</div>
+{% endblock %}

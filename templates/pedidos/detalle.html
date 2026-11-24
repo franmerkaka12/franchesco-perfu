@@ -1,0 +1,45 @@
+{% extends 'cuentas/base_cuenta.html' %}
+{% load tienda_extras %}
+
+{% block title %}Pedido {{ pedido.codigo }} · Franchesco{% endblock %}
+{% block cuenta_contenido %}
+<a href="{% url 'pedidos:mis_pedidos' %}" class="small text-muted"><i class="bi bi-arrow-left"></i> Mis pedidos</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-4">
+  <h1 class="titulo-seccion mb-0">Pedido {{ pedido.codigo }}</h1>
+  <span class="badge-estado text-bg-{{ pedido.color_estado }}">{{ pedido.get_estado_display }}</span>
+</div>
+<p class="text-muted small">Realizado el {{ pedido.fecha|date:"d/m/Y \a \l\a\s H:i" }}</p>
+
+<div class="table-responsive mb-4">
+  <table class="table align-middle">
+    <thead><tr class="small text-muted"><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
+    <tbody>
+      {% for d in pedido.detalles.all %}
+      <tr>
+        <td><strong class="small text-uppercase d-block">{{ d.marca }}</strong>{% if d.producto and d.producto.activo %}<a href="{{ d.producto.get_absolute_url }}">{{ d.nombre_producto }}</a>{% else %}{{ d.nombre_producto }}{% endif %}</td>
+        <td class="text-center">{{ d.cantidad }}</td>
+        <td class="text-end">{{ d.precio_unitario|pesos }}</td>
+        <td class="text-end fw-semibold">{{ d.subtotal|pesos }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">{{ pedido.subtotal|pesos }}</td></tr>
+      {% if pedido.descuento %}<tr class="text-success"><td colspan="3" class="text-end">Descuento {% if pedido.cupon %}({{ pedido.cupon.codigo }}){% endif %}</td><td class="text-end">-{{ pedido.descuento|pesos }}</td></tr>{% endif %}
+      <tr class="fs-5"><td colspan="3" class="text-end fw-bold">Total</td><td class="text-end fw-bold">{{ pedido.total|pesos }}</td></tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6"><div class="info-envio h-100">
+    <p class="fw-bold mb-2"><i class="bi bi-geo-alt me-2"></i>Entrega</p>
+    <p class="mb-0">{{ pedido.nombre }} {{ pedido.apellido }}<br>{{ pedido.direccion }}<br>{{ pedido.ciudad }} ({{ pedido.codigo_postal }})<br>Tel: {{ pedido.telefono }}</p>
+    {% if pedido.notas %}<p class="mt-2 mb-0 text-muted">Notas: {{ pedido.notas }}</p>{% endif %}
+  </div></div>
+  <div class="col-md-6"><div class="info-envio h-100">
+    <p class="fw-bold mb-2"><i class="bi bi-credit-card me-2"></i>Pago</p>
+    <p class="mb-0">{{ pedido.pago.get_metodo_display }}<br>Estado: {{ pedido.pago.get_estado_display }}<br>Monto: {{ pedido.pago.monto|pesos }}</p>
+  </div></div>
+</div>
+{% endblock %}

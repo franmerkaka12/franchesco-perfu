@@ -1,0 +1,78 @@
+{% extends 'panel/base_panel.html' %}
+{% load tienda_extras %}
+{% block title %}Dashboard{% endblock %}
+{% block encabezado %}Dashboard{% endblock %}
+{% block acciones %}<a href="{% url 'panel:producto_crear' %}" class="btn btn-negro btn-sm"><i class="bi bi-plus-lg me-1"></i>Nuevo producto</a>{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3"><div class="tarjeta kpi kpi-1"><div class="icono"><i class="bi bi-cash-stack"></i></div><div><div class="valor">{{ ventas_mes|pesos }}</div><div class="etiqueta">Ventas del mes ({{ pedidos_mes }})</div></div></div></div>
+  <div class="col-sm-6 col-xl-3"><a href="{% url 'panel:pedidos' %}?estado=pendiente" class="text-decoration-none text-reset"><div class="tarjeta kpi kpi-2"><div class="icono"><i class="bi bi-hourglass-split"></i></div><div><div class="valor">{{ pedidos_pendientes }}</div><div class="etiqueta">Pedidos pendientes</div></div></div></a></div>
+  <div class="col-sm-6 col-xl-3"><a href="{% url 'panel:productos' %}" class="text-decoration-none text-reset"><div class="tarjeta kpi kpi-3"><div class="icono"><i class="bi bi-box-seam"></i></div><div><div class="valor">{{ productos_activos }}</div><div class="etiqueta">Productos publicados</div></div></div></a></div>
+  <div class="col-sm-6 col-xl-3"><a href="{% url 'panel:usuarios' %}?rol=cliente" class="text-decoration-none text-reset"><div class="tarjeta kpi kpi-4"><div class="icono"><i class="bi bi-people"></i></div><div><div class="valor">{{ total_clientes }}</div><div class="etiqueta">Clientes registrados</div></div></div></a></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-xl-8">
+    <div class="tarjeta">
+      <h5>Ventas de los últimos 7 días</h5>
+      <div class="barras">
+        {% for v in ventas_semana %}
+        <div class="col-barra" title="{{ v.dia|date:'l d/m' }}: {{ v.total|pesos }}">
+          <span class="monto">{{ v.total|pesos }}</span>
+          <div class="barra" style="height: {{ v.pct }}%; animation-delay: {{ forloop.counter0 }}00ms"></div>
+          <span class="dia">{{ v.dia|date:"D d" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="tarjeta">
+      <h5>Más vendidos</h5>
+      {% for t in top_productos %}
+      <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+        <div><strong class="small d-block text-uppercase">{{ t.marca }}</strong><span class="small">{{ t.nombre_producto }}</span></div>
+        <div class="text-end"><strong>{{ t.unidades }} u.</strong><div class="small text-muted">{{ t.monto|pesos }}</div></div>
+      </div>
+      {% empty %}<p class="text-muted small mb-0">Todavía no hay ventas registradas.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-7">
+    <div class="tarjeta">
+      <div class="d-flex justify-content-between"><h5>Últimos pedidos</h5><a href="{% url 'panel:pedidos' %}" class="small">Ver todos</a></div>
+      <div class="table-responsive">
+        <table class="table table-panel">
+          <thead><tr><th>Pedido</th><th>Cliente</th><th>Fecha</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+          <tbody>
+          {% for p in ultimos_pedidos %}
+            <tr onclick="location.href='{% url 'panel:pedido_detalle' p.pk %}'" style="cursor:pointer">
+              <td class="fw-semibold">{{ p.codigo }}</td>
+              <td>{{ p.nombre }} {{ p.apellido }}</td>
+              <td class="small text-muted">{{ p.fecha|date:"d/m H:i" }}</td>
+              <td><span class="badge-estado text-bg-{{ p.color_estado }}">{{ p.get_estado_display }}</span></td>
+              <td class="text-end fw-semibold">{{ p.total|pesos }}</td>
+            </tr>
+          {% empty %}<tr><td colspan="5" class="text-muted">Sin pedidos.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="tarjeta">
+      <div class="d-flex justify-content-between"><h5><i class="bi bi-exclamation-triangle text-warning me-1"></i>Stock bajo</h5><a href="{% url 'panel:stock' %}?filtro=bajo" class="small">Gestionar stock</a></div>
+      {% for p in stock_bajo %}
+      <div class="d-flex align-items-center gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+        <div class="mini-img">{% include 'tienda/partials/imagen.html' with producto=p %}</div>
+        <div class="flex-grow-1 small"><strong class="d-block">{{ p.marca }}</strong>{{ p.nombre }}</div>
+        <span class="stock-pill {% if p.stock == 0 %}stock-agotado{% else %}stock-bajo{% endif %}">{{ p.stock }}</span>
+      </div>
+      {% empty %}<p class="text-muted small mb-0"><i class="bi bi-check-circle text-success me-1"></i>Todos los productos tienen stock suficiente.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

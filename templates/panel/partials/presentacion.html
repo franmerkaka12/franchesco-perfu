@@ -1,0 +1,22 @@
+<div class="presentacion row g-2 align-items-start mb-2">
+  {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+  <span class="d-none">{{ f.DELETE }}</span>
+  <div class="col-4">
+    <label class="form-label small mb-1" for="{{ f.volumen_ml.id_for_label }}">Volumen (ml)</label>
+    {{ f.volumen_ml }}
+    {% for e in f.volumen_ml.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="col-4">
+    <label class="form-label small mb-1" for="{{ f.precio.id_for_label }}">Precio</label>
+    {{ f.precio }}
+    {% for e in f.precio.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="col-3">
+    <label class="form-label small mb-1" for="{{ f.stock.id_for_label }}">Stock</label>
+    {{ f.stock }}
+    {% for e in f.stock.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="col-1 d-flex justify-content-end" style="padding-top:1.85rem">
+    <button type="button" class="btn btn-light btn-sm js-quitar-pres" title="Quitar este tamaño" aria-label="Quitar este tamaño"><i class="bi bi-trash"></i></button>
+  </div>
+</div>

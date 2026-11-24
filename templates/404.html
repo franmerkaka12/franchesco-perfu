@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Página no encontrada · Franchesco{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="vacio-estado">
+    <i class="bi bi-compass"></i>
+    <h1 class="titulo-seccion mt-3">404 · No encontramos esta página</h1>
+    <p class="text-muted">Puede que el producto ya no esté disponible o que el enlace sea incorrecto.</p>
+    <a href="{% url 'tienda:inicio' %}" class="btn btn-negro mt-2">Volver al inicio</a>
+  </div>
+</div>
+{% endblock %}
